@@ -23,7 +23,7 @@ Country nvarchar(255),
 )
 
 --Inserting into Venom table.
---NOTE: Only data from the year 2017 was used, and data was log-transformed (normalized) for better visualization. 
+--NOTE: Only data from the year 2017 was used, and data was log-transformed (normalized).
 
 INSERT INTO #VenomousIncidence
 SELECT Venom.Entity,
@@ -58,20 +58,25 @@ WHERE Venom.Year = 2017 AND Pop.Year = 2017
 --WHERE Venom.Year = 2017 AND Pop.Year = 2017
 --ORDER BY 1
 
-SELECT VenInc.Entity, VenInc.[Log of Venomous Contact Per km²]
-FROM VenInc
 
-SELECT *
-FROM PopulationDensityVenom..['terrestrial-protected-areas$']
-WHERE Year = 2017
-ORDER BY 1
+--Data normalized and placed in a single view.
+--NOTE: As some countries had no endemic species, log(x+1) was used to normalize instead of log(x).
 
-
-SELECT Terr.Entity, Terr.[Terrestrial protected areas (% of total land area)], 
-LOG(Venom.[Incidence - Venomous animal contact - Sex: Both - Age: Age-stand]) AS [Log of Venomous Contact]
+CREATE VIEW EntireTable AS
+SELECT Terr.Entity, 
+LOG(Terr.[Terrestrial protected areas (% of total land area)]) AS [Log of Terrestrial Protected areas], 
+LOG(Venom.[Incidence - Venomous animal contact - Sex: Both - Age: Age-stand]) AS [Log of Venom Encounters],
+LOG(Endemic.[Total Endemic Species] +1) AS [Log of Total Endemic Species + 1],
+LOG(Pop.[Population density (people per sq# km of land area)]) AS [Log of Population Density]
 
 FROM PopulationDensityVenom..['terrestrial-protected-areas$'] Terr
-INNER JOIN PopulationDensityVenom..['incidence-of-venomous-animal-co$'] Venom 
+INNER JOIN PopulationDensityVenom..['incidence-of-venomous-animal-co$'] Venom
 	ON Terr.Entity= Venom.Entity
-JOIN PopulationDensityVenom..
-WHERE Terr.Year= 2017 AND Venom.Year = 2017
+JOIN PopulationDensityVenom..['TotalEndemicSpecies$'] Endemic
+	ON Terr.Entity= Endemic.Entity
+JOIN PopulationDensityVenom..['population-density$'] Pop
+	ON Pop.Entity = Terr.Entity
+WHERE Terr.Year= 2017 and Venom.Year= 2017 and Pop.Year= 2017
+
+SELECT * 
+FROM EntireTable
