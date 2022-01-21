@@ -60,3 +60,18 @@ WHERE Venom.Year = 2017 AND Pop.Year = 2017
 
 SELECT VenInc.Entity, VenInc.[Log of Venomous Contact Per km²]
 FROM VenInc
+
+SELECT *
+FROM PopulationDensityVenom..['terrestrial-protected-areas$']
+WHERE Year = 2017
+ORDER BY 1
+
+
+SELECT Terr.Entity, Terr.[Terrestrial protected areas (% of total land area)], 
+LOG(Venom.[Incidence - Venomous animal contact - Sex: Both - Age: Age-stand]) AS [Log of Venomous Contact]
+
+FROM PopulationDensityVenom..['terrestrial-protected-areas$'] Terr
+INNER JOIN PopulationDensityVenom..['incidence-of-venomous-animal-co$'] Venom 
+	ON Terr.Entity= Venom.Entity
+JOIN PopulationDensityVenom..
+WHERE Terr.Year= 2017 AND Venom.Year = 2017
